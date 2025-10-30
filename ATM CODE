@@ -1,0 +1,127 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class ATMSimulator {
+    private static final String CORRECT_PIN = "1234";
+    private double balance;
+    private ArrayList<String> history;
+
+    public ATMSimulator(double initialBalance) {
+        this.balance = initialBalance;
+        this.history = new ArrayList<>();
+        history.add(String.format("Account opened with balance: %.2f", balance));
+    }
+
+    public boolean validatePin(String pin) {
+        return CORRECT_PIN.equals(pin);
+    }
+
+    public void checkBalance() {
+        System.out.printf("Current balance: %.2f%n", balance);
+    }
+
+    public void deposit(double amount) {
+        if (amount <= 0) {
+            System.out.println("Enter an amount greater than 0.");
+            return;
+        }
+        balance += amount;
+        history.add(String.format("Deposited: %.2f | New balance: %.2f", amount, balance));
+        System.out.printf("Successfully deposited %.2f%n", amount);
+    }
+
+    public void withdraw(double amount) {
+        if (amount <= 0) {
+            System.out.println("Enter an amount greater than 0.");
+            return;
+        }
+        if (amount > balance) {
+            System.out.println("Insufficient funds.");
+            return;
+        }
+        balance -= amount;
+        history.add(String.format("Withdrawn: %.2f | New balance: %.2f", amount, balance));
+        System.out.printf("Please collect your cash: %.2f%n", amount);
+    }
+
+    public void printMiniStatement() {
+        System.out.println("----- Mini Statement -----");
+        int start = Math.max(0, history.size() - 10); // last 10 transactions
+        for (int i = start; i < history.size(); i++) {
+            System.out.println(history.get(i));
+        }
+        System.out.println("--------------------------");
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        ATMSimulator atm = new ATMSimulator(5000.00); // initial balance
+
+        System.out.println("Welcome to Simple ATM");
+        int attempts = 0;
+        boolean authenticated = false;
+        while (attempts < 3) {
+            System.out.print("Enter 4-digit PIN: ");
+            String pin = sc.nextLine().trim();
+            if (atm.validatePin(pin)) {
+                authenticated = true;
+                break;
+            } else {
+                attempts++;
+                System.out.println("Invalid PIN. Attempts left: " + (3 - attempts));
+            }
+        }
+
+        if (!authenticated) {
+            System.out.println("Too many invalid attempts. Card blocked.");
+            sc.close();
+            return;
+        }
+
+        boolean exit = false;
+        while (!exit) {
+            System.out.println("\n--- ATM Menu ---");
+            System.out.println("1. Check Balance");
+            System.out.println("2. Deposit");
+            System.out.println("3. Withdraw");
+            System.out.println("4. Mini Statement");
+            System.out.println("5. Exit");
+            System.out.print("Choose option: ");
+            String choice = sc.nextLine().trim();
+
+            switch (choice) {
+                case "1":
+                    atm.checkBalance();
+                    break;
+                case "2":
+                    System.out.print("Enter amount to deposit: ");
+                    try {
+                        double amt = Double.parseDouble(sc.nextLine().trim());
+                        atm.deposit(amt);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid amount.");
+                    }
+                    break;
+                case "3":
+                    System.out.print("Enter amount to withdraw: ");
+                    try {
+                        double amt = Double.parseDouble(sc.nextLine().trim());
+                        atm.withdraw(amt);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid amount.");
+                    }
+                    break;
+                case "4":
+                    atm.printMiniStatement();
+                    break;
+                case "5":
+                    System.out.println("Thank you for using Simple ATM. Goodbye!");
+                    exit = true;
+                    break;
+                default:
+                    System.out.println("Invalid choice. Try again.");
+            }
+        }
+        sc.close();
+    }
+}
